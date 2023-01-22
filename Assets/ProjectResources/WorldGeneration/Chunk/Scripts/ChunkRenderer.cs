@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -20,31 +21,55 @@ namespace Minecraft.WorldGeneration.Chunk
         
         private List<Vector3> vertices = new List<Vector3>();
         private List<int> triangles = new List<int>();
+        private Mesh chunkMesh = default;
 
         private void Start()
         {
-            Mesh chunkMesh = new Mesh();
+            chunkMesh = new Mesh();
 
+            RegenerateMesh();
+
+            GetComponent<MeshFilter>().mesh = chunkMesh;
+        }
+
+        private void RegenerateMesh()
+        {
+            vertices.Clear();
+            triangles.Clear();
+            
             for (int y = 0; y < ChunkHeight; y++)
             {
                 for (int x = 0; x < ChunkWidht; x++)
                 {
                     for (int z = 0; z < ChunkWidht; z++)
                     {
-                        GenerateBlock(x,y,z);
+                        GenerateBlock(x, y, z);
                     }
                 }
             }
 
+            chunkMesh.triangles = Array.Empty<int>();
             chunkMesh.vertices = vertices.ToArray();
             chunkMesh.triangles = triangles.ToArray();
 
+            chunkMesh.Optimize();
+            
             chunkMesh.RecalculateBounds();
             chunkMesh.RecalculateNormals();
-            chunkMesh.Optimize();
-
-            GetComponent<MeshFilter>().mesh = chunkMesh;
+            
             GetComponent<MeshCollider>().sharedMesh = chunkMesh;
+        }
+
+        public void SpawnBlock(Vector3Int blockPosition)
+        {
+            ChunkData.Blocks[blockPosition.x, blockPosition.y, blockPosition.z] = BlockType.Grass;
+            RegenerateMesh();
+        }
+        
+        public void DestroyBlock(Vector3Int blockPosition)
+        {
+            ChunkData.Blocks[blockPosition.x, blockPosition.y, blockPosition.z] = BlockType.Air;
+            RegenerateMesh();
         }
 
         private void GenerateBlock(int x, int y, int z)

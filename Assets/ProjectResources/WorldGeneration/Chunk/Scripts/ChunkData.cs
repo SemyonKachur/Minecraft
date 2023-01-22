@@ -8,6 +8,7 @@ namespace Minecraft.WorldGeneration.Chunk
     public class ChunkData : MonoBehaviour
     {
         public Vector2Int ChunkPosition = default;
+        public ChunkRenderer Renderer = default;
         public BlockType[,,] Blocks = default;
     }
 }
